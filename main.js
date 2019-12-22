@@ -27,6 +27,9 @@ function start() {
   
   const canvas = initCanvas()
   const ctx = canvas.getContext('2d')
+  ctx.translate(0.5, 0.5);
+  // ctx.translate(0.5, 0.5);
+
   
   const bits = []
   for (let k = 0; k < BITS_NUMBER; k ++ ) {
