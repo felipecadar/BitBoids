@@ -7,9 +7,9 @@ const EXISTING_RADIUS_MIN = 2
 const BITS_NUMBER = 200
 const BITS_POSITION_RANGE = 1000
 const BITS_VELOCITY_RANGE = 100
-const BITS_RADIUS_RANGE_MIN = 3
-const BITS_RADIUS_RANGE_MAX = 40
 const FIXED_DT = 0.016
+const QUAD_SIZE = 250
+const BIT_VISION_RANGE = 250
 
 var win = window,
 doc = document,
@@ -28,8 +28,6 @@ function start() {
   const canvas = initCanvas()
   const ctx = canvas.getContext('2d')
   ctx.translate(0.5, 0.5);
-  // ctx.translate(0.5, 0.5);
-
   
   const bits = []
   for (let k = 0; k < BITS_NUMBER; k ++ ) {
@@ -58,22 +56,36 @@ class Simulation {
   constructor (planets) {
     this.planets = planets || []
     
-    this.quads = new Array(10)
-    for (var i = 0; i < this.quads.length; i++) {
-      this.quads[i] = new Array(10);
-      for (var j = 0; j < this.quads[i].length; j++) {
-        this.quads[i][j] = []
-      }
-    }
+    // // this.quads = new Array(HEIGHT/QUAD_SIZE)
+    // for (var i = 0; i < this.quads.length; i++) {
+    //   this.quads[i] = new Array(10);
+    //   for (var j = 0; j < this.quads[i].length; j++) {
+    //     this.quads[i][j] = []
+    //   }
+    // }
 
     // Seta a simulação no planeta
     this.planets.map(p => p.simulation = this)
   }
 
-
   update(dt = 0.016) {
     // Update all planets in simulation
-    // this.planets.map(planet => planet.update(planet.position.magnitude()))
+    for (var i = 0; i < this.planets.length; i++){
+      const mean_vec = this.planets[i].velocity.copy()
+      var c = 0
+      for (var j = 0; j < this.planets.length; j++){
+        if(this.planets[i].position.dist(this.planets[j].position) < 50 ){
+          c = c + 1
+          mean_vec.add(this.planets[j].velocity)
+        }
+      }
+      if(c > 0){
+        this.planets[i].velocity.update(mean_vec.scale_inv(c))
+        this.planets[i].velocity.norm().scale(50)
+      }
+      // console.log(this.planets[i].velocity.toString())
+    }
+
     this.planets.map(planet => planet.update(dt))
   }
 
@@ -108,6 +120,12 @@ class Vector2 {
     return Math.sqrt(Math.pow(this.x - b.x, 2) + Math.pow(this.y - b.y, 2))
   }
 
+  update(vector){
+  this.x = vector.x
+  this.y = vector.y
+  return this
+  }
+
   sub(vector) {
     this.x -= vector.x
     this.y -= vector.y
@@ -123,6 +141,12 @@ class Vector2 {
   scale(factorX, factorY = factorX) {
     this.x *= factorX
     this.y *= factorY
+    return this
+  }
+
+  scale_inv(factorX, factorY = factorX) {
+    this.x /= factorX
+    this.y /= factorY
     return this
   }
 
