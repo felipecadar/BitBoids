@@ -168,7 +168,7 @@ Boid.prototype.render = function() {
   if (c < 0){
     fill(lerpColor(color('rgba(221,33,33,0.7)'), color('rgba(33, 211, 56, 0.7)'), c+1));
 }else{
-    fill(lerpColor(color('rgba(221,33,33,0.7)'), color('rgba(33, 211, 56, 0.7)'), c));
+    fill(lerpColor(color('rgba(33, 211, 56, 0.7)'), color('rgba(221,33,33,0.7)'), c));
   }
 
   stroke(51);
