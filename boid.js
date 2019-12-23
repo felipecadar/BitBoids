@@ -2,6 +2,7 @@ let flock;
 
 function setup() {
   cnv = createCanvas(windowWidth, windowHeight);
+
   // fullscreen();
   
   flock = new Flock();
@@ -23,6 +24,11 @@ function windowResized() {
 function draw() {
   background(51);
   flock.run();
+
+  textSize(16);
+  fill(255, 255, 255);
+  text('Doble Click to add obstacles. \nClick and drag to add boids!', 30, 30);
+
 }
 
 // Add a new boid into the System
