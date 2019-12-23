@@ -85,7 +85,7 @@ function Obstacle(x, y){
 }
 
 Obstacle.prototype.render = function(){
-  stroke(200);
+  stroke(51);
   fill('rgba(255, 0, 0, 1)')
   circle(this.position.x, this.position.y, this.r)
 }
@@ -171,7 +171,7 @@ Boid.prototype.render = function() {
     fill(lerpColor(color('rgba(221,33,33,0.7)'), color('rgba(33, 211, 56, 0.7)'), c));
   }
 
-  stroke(200);
+  stroke(51);
   push();
   translate(this.position.x, this.position.y);
   rotate(theta);
