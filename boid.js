@@ -129,7 +129,7 @@ Boid.prototype.flock = function(boids, obstacles) {
   sep.mult(2.0);
   ali.mult(1.0);
   coh.mult(1.2);
-  obs.mult(3);
+  obs.mult(6);
   // Add the force vectors to acceleration
   this.applyForce(sep);
   this.applyForce(ali);
@@ -226,7 +226,7 @@ Boid.prototype.separate = function(boids) {
   return steer;
 }
 Boid.prototype.avoidObstacle = function(obstacles) {
-  let desiredseparation = 50.0;
+  let desiredseparation = 40.0;
   let steer = createVector(0, 0);
   let count = 0;
   // For every boid in the system, check if it's too close
