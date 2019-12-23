@@ -1,18 +1,23 @@
-var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-
 let flock;
 
 function setup() {
-  createCanvas(w, h);
-  fullscreen();
-
+  cnv = createCanvas(windowWidth, windowHeight);
+  // fullscreen();
+  
   flock = new Flock();
   // Add an initial set of boids into the system
   for (let i = 0; i < 100; i++) {
     let b = new Boid(width / 2,height / 2);
     flock.addBoid(b);
   }
+
+  flock.addObstacle(new Obstacle(width / 2,height / 2))
+
+  // cnv.doubleClicked(flock.addObstacle);
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
@@ -22,7 +27,13 @@ function draw() {
 
 // Add a new boid into the System
 function mouseDragged() {
-  flock.addBoid(new Boid(mouseX, mouseY));
+  if (mouseButton === LEFT){
+    flock.addBoid(new Boid(mouseX, mouseY));
+  }
+}
+
+function doubleClicked(){
+  flock.addObstacle(new Obstacle(mouseX, mouseY));
 }
 
 // The Nature of Code
@@ -35,21 +46,48 @@ function mouseDragged() {
 function Flock() {
   // An array for all the boids
   this.boids = []; // Initialize the array
+  this.obstacles = []; // Initialize the array
 }
 
 Flock.prototype.run = function() {
-  for (let i = 0; i < this.boids.length; i++) {
-    this.boids[i].run(this.boids);  // Passing the entire list of boids to each boid individually
+  for (let i = 0; i < this.obstacles.length; i++) {
+    this.obstacles[i].run();  // Passing the entire list of boids to each boid individually
   }
+ 
+  for (let i = 0; i < this.boids.length; i++) {
+    this.boids[i].run(this.boids, this.obstacles);  // Passing the entire list of boids to each boid individually
+  }
+
 }
 
 Flock.prototype.addBoid = function(b) {
   this.boids.push(b);
 }
 
+Flock.prototype.addObstacle = function(b) {
+  this.obstacles.push(b);
+}
+
 // The Nature of Code
 // Daniel Shiffman
 // http://natureofcode.com
+
+// Obstacle class
+function Obstacle(x, y){
+  this.position = createVector(x , y)
+  this.r = 10
+}
+
+Obstacle.prototype.render = function(){
+  stroke(200);
+  fill('rgba(255, 0, 0, 1)')
+  circle(this.position.x, this.position.y, this.r)
+}
+
+
+Obstacle.prototype.run = function(){
+  this.render();
+}
 
 // Boid class
 // Methods for Separation, Cohesion, Alignment added
@@ -63,8 +101,8 @@ function Boid(x, y) {
   this.maxforce = 0.05; // Maximum steering force
 }
 
-Boid.prototype.run = function(boids) {
-  this.flock(boids);
+Boid.prototype.run = function(boids, obstacles) {
+  this.flock(boids, obstacles);
   this.update();
   this.borders();
   this.render();
@@ -76,18 +114,21 @@ Boid.prototype.applyForce = function(force) {
 }
 
 // We accumulate a new acceleration each time based on three rules
-Boid.prototype.flock = function(boids) {
+Boid.prototype.flock = function(boids, obstacles) {
   let sep = this.separate(boids);   // Separation
   let ali = this.align(boids);      // Alignment
   let coh = this.cohesion(boids);   // Cohesion
+  let obs = this.avoidObstacle(obstacles);   // Cohesion
   // Arbitrarily weight these forces
-  sep.mult(1.5);
+  sep.mult(2.0);
   ali.mult(1.0);
-  coh.mult(1.0);
+  coh.mult(1.2);
+  obs.mult(3);
   // Add the force vectors to acceleration
   this.applyForce(sep);
   this.applyForce(ali);
   this.applyForce(coh);
+  this.applyForce(obs);
 }
 
 // Method to update location
@@ -157,6 +198,38 @@ Boid.prototype.separate = function(boids) {
     if ((d > 0) && (d < desiredseparation)) {
       // Calculate vector pointing away from neighbor
       let diff = p5.Vector.sub(this.position, boids[i].position);
+      diff.normalize();
+      diff.div(d);        // Weight by distance
+      steer.add(diff);
+      count++;            // Keep track of how many
+    }
+  }
+  // Average -- divide by how many
+  if (count > 0) {
+    steer.div(count);
+  }
+
+  // As long as the vector is greater than 0
+  if (steer.mag() > 0) {
+    // Implement Reynolds: Steering = Desired - Velocity
+    steer.normalize();
+    steer.mult(this.maxspeed);
+    steer.sub(this.velocity);
+    steer.limit(this.maxforce);
+  }
+  return steer;
+}
+Boid.prototype.avoidObstacle = function(obstacles) {
+  let desiredseparation = 50.0;
+  let steer = createVector(0, 0);
+  let count = 0;
+  // For every boid in the system, check if it's too close
+  for (let i = 0; i < obstacles.length; i++) {
+    let d = p5.Vector.dist(this.position,obstacles[i].position);
+    // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
+    if ((d > 0) && (d < desiredseparation)) {
+      // Calculate vector pointing away from neighbor
+      let diff = p5.Vector.sub(this.position, obstacles[i].position);
       diff.normalize();
       diff.div(d);        // Weight by distance
       steer.add(diff);
