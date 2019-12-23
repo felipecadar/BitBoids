@@ -2,6 +2,30 @@ let flock;
 
 function setup() {
   cnv = createCanvas(windowWidth, windowHeight);
+  
+  //Button 1
+  button1 = createButton("Clear Obstacles")
+  button1.position(30, 60)
+  button1.mousePressed(clearObstacles)
+  button1.style("background-color: #008CBA; \
+                 border: none; \
+                 color: white; \
+                 text-align: center; \
+                 text-decoration: none; \
+                 display: inline-block; \
+                 font-size: 15px;")
+                
+  //Button 2
+  button2 = createButton("Clear Boids")
+  button2.position(150, 60)
+  button2.mousePressed(clearBoids)
+  button2.style("background-color: #008CBA; \
+                 border: none; \
+                 color: white; \
+                 text-align: center; \
+                 text-decoration: none; \
+                 display: inline-block; \
+                 font-size: 15px;")
 
   // fullscreen();
   
@@ -14,7 +38,14 @@ function setup() {
 
   flock.addObstacle(new Obstacle(width / 2,height / 2))
 
-  // cnv.doubleClicked(flock.addObstacle);
+}
+
+function clearObstacles(){
+  flock.obstacles = []
+}
+
+function clearBoids(){
+  flock.boids = []
 }
 
 function windowResized() {
@@ -161,16 +192,21 @@ Boid.prototype.seek = function(target) {
   return steer;
 }
 
-Boid.prototype.render = function() {
-  // Draw a triangle rotated in the direction of velocity
+Boid.prototype.color = function(){
   let theta = this.velocity.heading() + radians(90);
   let c = theta/3.14
   if (c < 0){
-    fill(lerpColor(color('rgba(221,33,33,0.7)'), color('rgba(33, 211, 56, 0.7)'), c+1));
-}else{
-    fill(lerpColor(color('rgba(33, 211, 56, 0.7)'), color('rgba(221,33,33,0.7)'), c));
+    return lerpColor(color('rgba(221,33,33,0.7)'), color('rgba(33, 211, 56, 0.7)'), c+1);
+  }else{
+    return lerpColor(color('rgba(33, 211, 56, 0.7)'), color('rgba(221,33,33,0.7)'), c);
   }
+}
 
+Boid.prototype.render = function() {
+  // Draw a triangle rotated in the direction of velocity
+  let theta = this.velocity.heading() + radians(90);
+  
+  fill(this.color())
   stroke(51);
   push();
   translate(this.position.x, this.position.y);
