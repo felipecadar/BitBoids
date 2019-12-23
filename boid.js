@@ -5,6 +5,7 @@ let flock;
 
 function setup() {
   createCanvas(w, h);
+  fullscreen();
 
   flock = new Flock();
   // Add an initial set of boids into the system
